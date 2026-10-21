@@ -6,11 +6,16 @@
   "engines": { "node": ">=20" },
   "scripts": {
     "setup": "tsx src/scripts/setup.ts",
+    "code": "tsx src/cli/code.ts",
+    "batch": "tsx src/cli/batch.ts",
+    "serve": "tsx src/api/server.ts",
+    "audit": "tsx src/cli/audit.ts",
     "demo:context": "tsx src/demos/context.ts",
     "demo:recovery": "tsx src/demos/recovery.ts",
     "demo:learning": "tsx src/demos/learning.ts",
     "demo:eval": "tsx src/demos/eval.ts",
-    "demo:all": "npm run setup && npm run demo:context && npm run demo:recovery && npm run demo:learning && npm run demo:eval",
+    "demo:synthesize": "tsx src/demos/synthesize.ts",
+    "demo:all": "npm run setup && npm run demo:context && npm run demo:recovery && npm run demo:learning && npm run demo:synthesize && npm run demo:eval",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

@@ -95,4 +95,12 @@ CREATE TABLE IF NOT EXISTS workflow_checkpoints (
   created_at TEXT NOT NULL,
   PRIMARY KEY (run_id, step)
 );
+
+-- ---- Audit trail (every learning event, for traceability) ----
+CREATE TABLE IF NOT EXISTS audit_log (
+  id     TEXT PRIMARY KEY,
+  at     TEXT NOT NULL,
+  kind   TEXT NOT NULL,           -- 'correction' | 'rule-synthesized'
+  detail TEXT NOT NULL            -- JSON
+);
 `;

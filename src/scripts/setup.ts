@@ -17,6 +17,7 @@ async function main(): Promise<void> {
     'corrections',
     'workflow_runs',
     'workflow_checkpoints',
+    'audit_log',
   ]) {
     db.prepare(`DELETE FROM ${table}`).run();
   }

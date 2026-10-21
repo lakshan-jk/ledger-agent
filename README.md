@@ -37,6 +37,7 @@ Transaction ─▶ normalize ─▶ classify (LLM) ─▶ validate ─▶ post �
 | **2. Recover mid-workflow** | A durable pipeline checkpoints every step to SQLite. A failure after the expensive LLM step resumes from the checkpoint — the LLM is **not** called again; only the failed step re-runs. | `npm run demo:recovery` |
 | **3. Learn from a correction** | A human fix is stored as an embedded memory. A later, *different* transaction retrieves it and applies the lesson — generalising from a single correction. | `npm run demo:learning` |
 | **4. Measure improvement** | A labeled eval set scores accuracy. Feed the mistakes back as corrections and re-run → the number moves. The measure → correct → measure loop. | `npm run demo:eval` |
+| **5. Context self-improves** | When the same vendor is corrected the same way repeatedly, the agent promotes it into a durable rule (coded deterministically from then on, no LLM) — and logs the change to an audit trail. | `npm run demo:synthesize` |
 
 ---
 
@@ -70,8 +71,8 @@ npm run demo:recovery   # problem 2 — recover mid-workflow
 npm run demo:learning   # problem 3 — learn from a correction
 npm run demo:eval       # problem 4 — measure improvement
 
-npm run demo:all        # setup + all four in sequence
-npm test                # deterministic unit tests — classifier logic, durable engine, similarity
+npm run demo:all        # setup + all five in sequence
+npm test                # deterministic unit tests — classifier logic, durable engine, similarity, synthesis, CSV
 npm run typecheck       # strict TypeScript, no emit
 ```
 
@@ -111,6 +112,45 @@ corrections move the number up, reproducibly (the LLM runs at `temperature: 0`).
 
 ---
 
+## Use it as a tool, not just a demo
+
+Beyond the scripted demos, the same agent is exposed as a CLI, a batch processor, and an HTTP
+API — all dependency-free (the API is built on Node's built-in `http`).
+
+**Code a single transaction (CLI):**
+```bash
+npm run code -- "Figma" "Figma design tool annual plan" 540
+# → { "account": { "code": "6100", "name": "Software Subscriptions — G&A" },
+#     "confidence": 1, "source": "llm", "needsReview": false, "rationale": "…" }
+```
+
+**Code a CSV in one pass (batch):**
+```bash
+npm run batch -- examples/transactions.csv > coded.csv
+# input columns: vendor, description, amount  → adds account_code, confidence, source, needs_review
+```
+
+**Run it as a service (HTTP API):**
+```bash
+npm run serve        # http://localhost:8787
+```
+| Method & path | Body | Returns |
+| --- | --- | --- |
+| `GET /health` | — | liveness + account count |
+| `POST /code` | `{ vendor, description, amount? }` | coded account + confidence + rationale |
+| `GET /review` | — | codings flagged `needsReview` (the human queue) |
+| `POST /correct` | `{ vendor, description, toAccountCode, reason? }` | records a correction the agent learns from |
+
+**Inspect the learning trail:**
+```bash
+npm run audit        # every correction + synthesized rule, newest first
+```
+
+**Container:** `docker build -t ledger-agent . && docker run -p 8787:8787 ledger-agent`
+(point `OLLAMA_URL` at your host — defaults to `host.docker.internal` on Docker Desktop).
+
+---
+
 ## Architecture
 
 A small, layered codebase with the agent logic separated from I/O:
@@ -118,14 +158,19 @@ A small, layered codebase with the agent logic separated from I/O:
 ```
 src/
   llm/        ollama.ts        local chat (JSON mode) + embeddings + cosine similarity
-  db/         db.ts            node:sqlite schema (context, checkpoints, corrections, codings)
+  db/         db.ts            node:sqlite schema (context, checkpoints, corrections, codings, audit)
   context/    contextStore.ts  editable chart of accounts + coding rules (embedded) + vendor memory
   memory/     corrections.ts   embedded correction memory with similarity retrieval
   agent/      classify.ts      decision logic: correction → vendor → LLM(with retrieved context)
+              synthesize.ts    promote repeated corrections into durable rules (self-improving)
   workflow/   engine.ts        durable step runner (checkpoint / resume)
               codingWorkflow.ts  normalize → classify → validate → post
   eval/       evaluate.ts      accuracy scoring over a labeled set
-  demos/      context | recovery | learning | eval
+  audit/      audit.ts         append-only trail of every learning event
+  cli/        code | batch | audit    command-line entry points
+  api/        server.ts        dependency-free HTTP API (node:http)
+  lib/        csv.ts           tiny CSV parse/serialize
+  demos/      context | recovery | learning | synthesize | eval
 ```
 
 **Design choices**

@@ -3,6 +3,7 @@ import type { DB } from '../db/db.js';
 import type { Correction, Transaction } from '../domain/types.js';
 import { embed, cosineSimilarity } from '../llm/ollama.js';
 import { transactionText } from '../context/contextStore.js';
+import { writeAudit } from '../audit/audit.js';
 
 export interface ScoredCorrection {
   correction: Correction;
@@ -57,6 +58,12 @@ export class CorrectionsMemory {
          VALUES (@id, @transactionId, @vendor, @description, @fromAccountCode, @toAccountCode, @reason, @embedding, @createdAt)`,
       )
       .run({ ...correction, embedding: JSON.stringify(vector) });
+    writeAudit(this.db, 'correction', {
+      vendor: correction.vendor,
+      fromAccountCode: correction.fromAccountCode,
+      toAccountCode: correction.toAccountCode,
+      reason: correction.reason,
+    });
     return correction;
   }
 
