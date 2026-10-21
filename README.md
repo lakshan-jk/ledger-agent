@@ -1,5 +1,9 @@
 # ledger-agent
 
+[![CI](https://github.com/lakshan-jk/ledger-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/lakshan-jk/ledger-agent/actions/workflows/ci.yml)
+&nbsp;![Node](https://img.shields.io/badge/node-%E2%89%A522-5FA04E?logo=node.js&logoColor=white)
+&nbsp;![License](https://img.shields.io/badge/license-MIT-blue)
+
 An AI agent that **owns a real finance workflow** — coding expense transactions to the right
 GL account — built to demonstrate the four hard problems of agents that run business workflows:
 giving them **context that keeps changing**, **recovering** when a step fails mid-workflow,
@@ -61,8 +65,13 @@ npm run demo:learning   # problem 3 — learn from a correction
 npm run demo:eval       # problem 4 — measure improvement
 
 npm run demo:all        # setup + all four in sequence
-npm test                # deterministic tests (durable engine + similarity)
+npm test                # deterministic unit tests — classifier logic, durable engine, similarity
+npm run typecheck       # strict TypeScript, no emit
 ```
+
+> Tests mock the LLM client, so `npm test` and CI run **without Ollama or a model** — they
+> cover the deterministic decision logic (correction/vendor/validation branches) and the
+> durable checkpoint/resume engine. CI (GitHub Actions) runs typecheck + tests on every push.
 
 > **Troubleshooting:** if a demo prints *"Could not reach Ollama"*, start the server with
 > `ollama serve`. If it reports a missing model, re-run the `ollama pull` commands above.
@@ -90,7 +99,9 @@ transaction then retrieves that correction (by similarity) and is coded `6100` �
 from a single human fix.
 
 **`demo:eval`** — baseline accuracy on 16 labeled transactions, then the mistakes are fed back
-as corrections and it re-runs → accuracy climbs (e.g. **93.8% → 100%**).
+as corrections and it re-runs → accuracy climbs (e.g. **93.8% → 100%**). Exact baseline numbers
+are illustrative and depend on the local model/quantisation; the point is the *direction* —
+corrections move the number up, reproducibly (the LLM runs at `temperature: 0`).
 
 ---
 
@@ -126,6 +137,9 @@ src/
 ## Limitations & what I'd build next
 
 This is a focused prototype, not a product. With more time I'd:
+- Swap the retrieval for a **vector index**. Today similarity search loads all corrections/rules
+  and scores them in-process (O(n) per decision) — fine at demo scale, but at tens of thousands of
+  corrections I'd move to an ANN index (sqlite-vss, pgvector, or similar) behind the same interface.
 - Replace the single-decision classifier with a **planner** that handles multi-document workflows
   (e.g. match invoice → PO → receipt) with the same durable engine.
 - Add **confidence-gated human handoff** (low-confidence or high-dollar items route to review).
