@@ -65,8 +65,10 @@ export class ContextStore {
     }));
   }
 
-  /** Retrieve the top-k coding rules most relevant to a transaction. */
-  async retrieveRelevantRules(t: Transaction, k = 4): Promise<CodingRule[]> {
+  /** Retrieve the top-k coding rules most relevant to a transaction, each with
+   *  its similarity score (highest first). The score lets callers judge how well
+   *  the business context actually supports a decision. */
+  async relevantRulesScored(t: Transaction, k = 4): Promise<{ rule: CodingRule; score: number }[]> {
     const rows = this.db
       .prepare('SELECT id, text, account_code, embedding, updated_at FROM coding_rules')
       .all() as {
@@ -89,8 +91,12 @@ export class ContextStore {
         score: r.embedding ? cosineSimilarity(query, JSON.parse(r.embedding) as number[]) : 0,
       }))
       .sort((a, b) => b.score - a.score)
-      .slice(0, k)
-      .map((x) => x.rule);
+      .slice(0, k);
+  }
+
+  /** Retrieve the top-k coding rules most relevant to a transaction. */
+  async retrieveRelevantRules(t: Transaction, k = 4): Promise<CodingRule[]> {
+    return (await this.relevantRulesScored(t, k)).map((x) => x.rule);
   }
 
   /** A vendor the org has already mapped to an account (normalized lookup). */

@@ -38,6 +38,7 @@ Transaction ─▶ normalize ─▶ classify (LLM) ─▶ validate ─▶ post �
 | **3. Learn from a correction** | A human fix is stored as an embedded memory. A later, *different* transaction retrieves it and applies the lesson — generalising from a single correction. | `npm run demo:learning` |
 | **4. Measure improvement** | A labeled eval set scores accuracy. Feed the mistakes back as corrections and re-run → the number moves. The measure → correct → measure loop. | `npm run demo:eval` |
 | **5. Context self-improves** | When the same vendor is corrected the same way repeatedly, the agent promotes it into a durable rule (coded deterministically from then on, no LLM) — and logs the change to an audit trail. | `npm run demo:synthesize` |
+| **6. Know when not to guess** | Codings are flagged for human review on three signals independent of the model's (often overstated) self-confidence: an invalid account, weak context support, or the model disagreeing with the closest rule. Flagged items land in a review queue. | `npm run demo:review` |
 
 ---
 
@@ -170,7 +171,7 @@ src/
   cli/        code | batch | audit    command-line entry points
   api/        server.ts        dependency-free HTTP API (node:http)
   lib/        csv.ts           tiny CSV parse/serialize
-  demos/      context | recovery | learning | synthesize | eval
+  demos/      context | recovery | review | learning | synthesize | eval
 ```
 
 **Design choices**

@@ -34,8 +34,11 @@ export interface Coding {
   accountCode: string;
   confidence: number; // 0..1
   rationale: string;
-  /** True when confidence was below threshold or validation failed. */
+  /** True when confidence was below threshold, validation failed, or the coding
+   *  had weak support from the business context (no close rule or prior fix). */
   needsReview: boolean;
+  /** When needsReview is true, a short human-readable reason. */
+  reviewReason?: string;
   /** Where the signal came from — useful for the demo narrative. */
   source: 'llm' | 'vendor-memory' | 'correction-memory';
 }

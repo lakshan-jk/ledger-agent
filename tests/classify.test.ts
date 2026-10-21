@@ -103,8 +103,10 @@ describe('classifyTransaction — decision priority', () => {
     expect(result.needsReview).toBe(true);
   });
 
-  it('accepts a valid, high-confidence LLM coding', async () => {
+  it('accepts a valid, high-confidence, well-supported LLM coding', async () => {
     const { ctx, corrections } = freshStore();
+    // A rule that matches the transaction gives the pick strong context support.
+    await ctx.upsertRule('r-sw', 'Vercel — Vercel Pro — frontend hosting', '6100');
     mockedChat.mockResolvedValue({ accountCode: '6100', confidence: 0.95, rationale: 'ok' } as never);
 
     const result = await classifyTransaction(tx(), ctx, corrections);
@@ -112,6 +114,28 @@ describe('classifyTransaction — decision priority', () => {
     expect(result.source).toBe('llm');
     expect(result.accountCode).toBe('6100');
     expect(result.needsReview).toBe(false);
+  });
+
+  it('flags for review when the LLM pick has weak context support, even at high confidence', async () => {
+    const { ctx, corrections } = freshStore(); // no coding rules seeded → nothing supports the pick
+    mockedChat.mockResolvedValue({ accountCode: '6100', confidence: 0.95, rationale: 'ok' } as never);
+
+    const result = await classifyTransaction(tx(), ctx, corrections);
+
+    expect(result.needsReview).toBe(true);
+    expect(result.reviewReason).toMatch(/weak context support/);
+  });
+
+  it('flags for review when the model disagrees with the closest rule', async () => {
+    const { ctx, corrections } = freshStore();
+    // The closest rule says 6500, but the model will pick 6100 → disagreement.
+    await ctx.upsertRule('r-cloud', 'Vercel — Vercel Pro — frontend hosting', '6500');
+    mockedChat.mockResolvedValue({ accountCode: '6100', confidence: 0.95, rationale: 'ok' } as never);
+
+    const result = await classifyTransaction(tx(), ctx, corrections);
+
+    expect(result.needsReview).toBe(true);
+    expect(result.reviewReason).toMatch(/closest rule/);
   });
 
   it('flags a valid but low-confidence LLM coding for review', async () => {

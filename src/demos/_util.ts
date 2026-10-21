@@ -47,9 +47,10 @@ export function title(s: string): void {
 }
 
 export function codingLine(ctx: ContextStore, c: Coding): string {
+  const review = c.needsReview ? `, NEEDS REVIEW${c.reviewReason ? ` — ${c.reviewReason}` : ''}` : '';
   return (
     `  → ${label(ctx, c.accountCode)}  ` +
-    `(confidence ${(c.confidence * 100).toFixed(0)}%, via ${c.source}${c.needsReview ? ', NEEDS REVIEW' : ''})\n` +
+    `(confidence ${(c.confidence * 100).toFixed(0)}%, via ${c.source}${review})\n` +
     `    ${c.rationale}`
   );
 }

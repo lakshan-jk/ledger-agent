@@ -54,7 +54,9 @@ export async function classifyTransaction(
   }
 
   // 3. LLM with retrieved context + weaker corrections as hints.
-  const rules = await ctx.retrieveRelevantRules(t, 4);
+  const scoredRules = await ctx.relevantRulesScored(t, 4);
+  const rules = scoredRules.map((s) => s.rule);
+  const topRuleScore = scoredRules[0]?.score ?? 0;
   const hints = similar.filter((s) => s.score >= HINT_CORRECTION);
   const accounts = ctx.getAccounts();
 
@@ -91,12 +93,38 @@ export async function classifyTransaction(
   const valid = typeof out.accountCode === 'string' && ctx.accountExists(out.accountCode);
   const confidence = valid ? clamp01(Number(out.confidence) || 0.5) : 0;
 
+  // Decide whether a human should look. Independent signals, so we don't rely on
+  // the model's self-reported confidence (small local models overstate it):
+  //   (a) the model returned an account that isn't in the chart,
+  //   (b) the model's own confidence is below threshold,
+  //   (c) weak support — no close coding rule AND no prior correction, or
+  //   (d) disagreement — a rule clearly applies but points somewhere else.
+  const topRuleAccount = scoredRules[0]?.rule.accountCode;
+  const hasSupportingRule = topRuleScore >= config.ruleSupportFloor;
+  const lowConfidence = confidence < config.reviewConfidenceThreshold;
+  const weakSupport = hints.length === 0 && !hasSupportingRule;
+  const disagreesWithRule =
+    hints.length === 0 && hasSupportingRule && valid && topRuleAccount !== out.accountCode;
+  const needsReview = !valid || lowConfidence || weakSupport || disagreesWithRule;
+
+  let reviewReason: string | undefined;
+  if (!valid) {
+    reviewReason = `model returned an unknown account (${out.accountCode})`;
+  } else if (lowConfidence) {
+    reviewReason = `low model confidence (${(confidence * 100).toFixed(0)}%)`;
+  } else if (weakSupport) {
+    reviewReason = `weak context support (best rule match ${(topRuleScore * 100).toFixed(0)}%, no prior correction)`;
+  } else if (disagreesWithRule) {
+    reviewReason = `model chose ${out.accountCode} but the closest rule points to ${topRuleAccount}`;
+  }
+
   return {
     transactionId: t.id,
     accountCode: valid ? out.accountCode : 'UNRESOLVED',
     confidence,
     rationale: valid ? String(out.rationale ?? '') : `Model returned an invalid account (${out.accountCode}).`,
-    needsReview: !valid || confidence < config.reviewConfidenceThreshold,
+    needsReview,
+    reviewReason,
     source: 'llm',
   };
 }

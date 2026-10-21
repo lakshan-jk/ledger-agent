@@ -15,7 +15,8 @@
     "demo:learning": "tsx src/demos/learning.ts",
     "demo:eval": "tsx src/demos/eval.ts",
     "demo:synthesize": "tsx src/demos/synthesize.ts",
-    "demo:all": "npm run setup && npm run demo:context && npm run demo:recovery && npm run demo:learning && npm run demo:synthesize && npm run demo:eval",
+    "demo:review": "tsx src/demos/review.ts",
+    "demo:all": "npm run setup && npm run demo:context && npm run demo:recovery && npm run demo:review && npm run demo:learning && npm run demo:synthesize && npm run demo:eval",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
