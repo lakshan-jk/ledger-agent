@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="640" font-family="SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" font-size="13">
+  <style>
+    .bg{fill:#0d1117}
+    .win{fill:#161b22;stroke:#30363d;stroke-width:1}
+    .t{fill:#c9d1d9;white-space:pre}
+    .dim{fill:#8b949e}
+    .ok{fill:#3fb950}
+    .bad{fill:#f85149}
+    .accent{fill:#58a6ff}
+    .yellow{fill:#d29922}
+    .rule{fill:#30363d}
+    .bold{font-weight:bold}
+  </style>
+
+  <rect class="bg" width="860" height="640" rx="10"/>
+  <rect class="win" x="12" y="12" width="836" height="616" rx="8"/>
+
+  <!-- title bar -->
+  <circle cx="34" cy="34" r="6" fill="#ff5f56"/>
+  <circle cx="54" cy="34" r="6" fill="#ffbd2e"/>
+  <circle cx="74" cy="34" r="6" fill="#27c93f"/>
+  <text x="430" y="38" text-anchor="middle" class="dim">npm run demo:eval — ledger-agent</text>
+  <line x1="12" y1="52" x2="848" y2="52" class="rule" stroke="#30363d"/>
+
+  <g transform="translate(30,78)">
+    <text class="accent bold" y="0">PROBLEM 4 — Measuring improvement</text>
+    <text class="dim" y="24">Evaluating the agent on 16 labeled transactions…</text>
+
+    <text y="50"><tspan class="ok">✓</tspan><tspan class="t" dx="6">Amazon Web Services   → 6500 R&amp;D — Cloud Infrastructure</tspan></text>
+    <text y="70"><tspan class="ok">✓</tspan><tspan class="t" dx="6">Slack                 → 6100 Software Subscriptions — G&amp;A</tspan></text>
+    <text y="90"><tspan class="ok">✓</tspan><tspan class="t" dx="6">Google Ads            → 6200 Marketing &amp; Advertising</tspan></text>
+    <text y="110"><tspan class="bad">✗</tspan><tspan class="bad" dx="6">WeWork                → got 6100 Software, expected 6400 Office &amp; Supplies</tspan></text>
+    <text y="130"><tspan class="ok">✓</tspan><tspan class="t" dx="6">Stripe                → 6800 Bank &amp; Payment Fees</tspan></text>
+    <text y="150"><tspan class="dim" dx="0">  … 11 more ✓ …</tspan></text>
+
+    <line x1="0" y1="168" x2="790" y2="168" stroke="#30363d"/>
+    <text y="192"><tspan class="yellow bold">BASELINE ACCURACY: 93.8%</tspan><tspan class="dim" dx="10">(15 / 16)</tspan></text>
+    <text class="dim" y="216">✎ A reviewer corrects the 1 mistake (WeWork → 6400) — recorded as a correction.</text>
+
+    <text class="accent bold" y="252">RE-EVALUATING after corrections …</text>
+    <text y="276"><tspan class="ok">✓</tspan><tspan class="t" dx="6">WeWork                → 6400 Office &amp; Supplies</tspan><tspan class="dim" dx="10">(learned ✓)</tspan></text>
+    <text y="296"><tspan class="dim">  … all 16 now ✓ …</tspan></text>
+
+    <line x1="0" y1="314" x2="790" y2="314" stroke="#30363d"/>
+    <text y="340"><tspan class="ok bold" font-size="15">NEW ACCURACY: 100.0%</tspan><tspan class="dim" dx="10">(16 / 16)</tspan></text>
+    <text y="366"><tspan class="accent bold">IMPROVEMENT: +6.3 points</tspan><tspan class="dim" dx="8">— the agent learned from the correction.</tspan></text>
+
+    <text class="dim" y="402" font-size="12">The same correction also generalizes to unseen-but-similar transactions (demo:learning).</text>
+    <text class="dim" y="426" font-size="12">100% local · Ollama llama3.2 · temperature 0 · no cloud, no API keys.</text>
+  </g>
+</svg>

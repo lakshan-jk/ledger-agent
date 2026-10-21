@@ -13,6 +13,12 @@ It runs **100% locally** on a small open model (Ollama · `llama3.2` + `nomic-em
 **no API keys, no cloud, no data leaving the machine.** Each capability has a runnable demo that
 *shows the behaviour happening.*
 
+<p align="center">
+  <img src="docs/demo-eval.svg" alt="demo:eval — accuracy climbs from 93.8% to 100% after one human correction is fed back" width="760">
+  <br>
+  <em><code>npm run demo:eval</code> — one human correction feeds back into the eval loop and accuracy climbs 93.8% → 100%.</em>
+</p>
+
 ```
 Transaction ─▶ normalize ─▶ classify (LLM) ─▶ validate ─▶ post ─▶ ledger
                               ▲          ▲
