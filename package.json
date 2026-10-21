@@ -1,0 +1,24 @@
+{
+  "name": "ledger-agent",
+  "version": "1.0.0",
+  "description": "A local-LLM agent that owns the GL transaction-coding workflow — editable business context, durable recovery, learning from corrections, and measurable improvement.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "setup": "tsx src/scripts/setup.ts",
+    "demo:context": "tsx src/demos/context.ts",
+    "demo:recovery": "tsx src/demos/recovery.ts",
+    "demo:learning": "tsx src/demos/learning.ts",
+    "demo:eval": "tsx src/demos/eval.ts",
+    "demo:all": "npm run setup && npm run demo:context && npm run demo:recovery && npm run demo:learning && npm run demo:eval",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4"
+  }
+}
